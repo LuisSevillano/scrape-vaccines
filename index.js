@@ -14,7 +14,6 @@ function scrapeLinks() {
 	// Makes a request to the startingUrl and then, from the response (which is the startingUrl's HTML),
 	// gathers all of the links corresponding to each country individual page.
 	request(startingUrl, function (error, response, body) {
-		// var baseUrl = 'http://www.midwestanimalrescue.org';
 		var baseUrl = 'http://www.msssi.gob.es/profesionales/saludPaises.do?metodo=verDetallePais&pais=';
 		var $ = cheerio.load(body);
 		// basic error handling
@@ -22,13 +21,13 @@ function scrapeLinks() {
 			throw new Error(error);
 		}
 
-		// gets urls of each country from the Select HTML element without first one which has not data associated
+		// get urls of each country from the Select 'HTML element' without the default option which has no data associated
 		// and fill and array
-		$('#pais > option:not(:selected)').each(function(i, element) {
-			$ = cheerio.load(element);
+		$('#pais > option:not(:selected)').each(function(i, el) {
+			$ = cheerio.load(el);
 
-			var extension = $(this).val();
-			countryUrls[i] = baseUrl + extension;
+			var countryLinkId = $(this).val();
+			countryUrls[i] = baseUrl + countryLinkId;
 		});
 
 		scrapeInfo(countryUrls);
@@ -42,12 +41,13 @@ function scrapeInfo(countryUrls) {
 	Promise.map(countryUrls, function(countryUrl) {
 
 		return request(countryUrl, function(error, response, body) {
-
+			// first of all I was testing this individual code for each page using chrome's Snippets from the dev tools
+			// to prevent be banned/blocked because of make multiple requests
 			var $ = cheerio.load(body);
 			if (error) {
 				throw new Error(error);
 			}
-
+			// this object has some default options filled if those fields doesn't exist on individual page
 			var countryObj = {
 				"Nombre": "",
 				"Capital": "",
@@ -65,12 +65,15 @@ function scrapeInfo(countryUrls) {
 
 			var countryName = toTitleCase($("h2").text());
 			var tables = $('.imagen_texto table'),
+			// main table
 			details = tables[0],
+			// complementary tables
 			vacRequired = tables[1],
 			vacReccom = tables[2];
+			// paludismo table
 			paludismo = tables[3];
 
-			// get country name
+			// set country name
 			countryObj["Nombre"] = countryName;
 			$(details).find("tr").each(function(d, i){
 
@@ -87,19 +90,18 @@ function scrapeInfo(countryUrls) {
 			countryObj["Vacunas exigidas"] = $(vacRequired).find("td").text().trim();
 			countryObj["Vacunas recomendadas"] = $(vacReccom).find("td").text().trim();
 
-
+			// add a new country to the main array
 			countryInfo.push(countryObj);
 		});
 	})
 	.then(function() {
-		// only calles this function once all of the countryObj have been pushed into
-		// countryInfo
+		// only calles this function once all of the countryObj have been pushed into countryInfo		
 		makeTSV(countryInfo);
 	});
 }
 
 function makeTSV(countryInfo) {
-	fs.writeFile('countryInfo.tsv', d3Dsv.tsvFormat(countryInfo));
+	fs.writeFile('data/countryInfo.tsv', d3Dsv.tsvFormat(countryInfo));
 }
 function toTitleCase(str) {
 	return str.replace(/\w\S*/g, function(txt){return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();});
