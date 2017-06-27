@@ -31,7 +31,7 @@ function scrapeLinks() {
 			countryUrls[i] = baseUrl + countryLinkId;
 		});
 
-		scrapeInfo([countryUrls[0]]);
+		scrapeInfo(countryUrls);
 	});
 }
 
