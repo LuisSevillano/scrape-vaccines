@@ -3,6 +3,7 @@ var request = require('request-promise');
 var cheerio = require('cheerio');
 var fs = require('fs');
 var d3Dsv = require('d3-dsv');
+var mkdirp = require('mkdirp');
 
 var url = 'https://www.msssi.gob.es/profesionales/saludPaises.do?metodo=verDetallePais&pais=';
 
@@ -30,7 +31,7 @@ function scrapeLinks() {
 			countryUrls[i] = baseUrl + countryLinkId;
 		});
 
-		scrapeInfo(countryUrls);
+		scrapeInfo([countryUrls[0]]);
 	});
 }
 
@@ -95,13 +96,17 @@ function scrapeInfo(countryUrls) {
 		});
 	})
 	.then(function() {
-		// only calles this function once all of the countryObj have been pushed into countryInfo		
+		// only calles this function once all of the countryObj have been pushed into countryInfo
 		makeTSV(countryInfo);
 	});
 }
 
 function makeTSV(countryInfo) {
-	fs.writeFile('data/countryInfo.tsv', d3Dsv.tsvFormat(countryInfo));
+	mkdirp('data', function (err) {
+		if (err) console.error(err)
+		else fs.writeFile('data/countryInfo.tsv', d3Dsv.tsvFormat(countryInfo));
+	});
+
 }
 function toTitleCase(str) {
 	return str.replace(/\w\S*/g, function(txt){return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();});
