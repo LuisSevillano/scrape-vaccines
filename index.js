@@ -45,6 +45,7 @@ function scrapeInfo(countryUrls) {
 			// first of all I was testing this individual code for each page using chrome's Snippets from the dev tools
 			// to prevent be banned/blocked because of make multiple requests
 			var $ = cheerio.load(body);
+
 			if (error) {
 				throw new Error(error);
 			}
@@ -61,7 +62,9 @@ function scrapeInfo(countryUrls) {
 				"Moneda": "",
 				"Zona horaria": "",
 				"Clima": "",
-				"Cancillería Española": ""
+				"Cancillería Española": "",
+				"URL": countryUrl,
+				"pageId":countryUrl.substring(countryUrl.lastIndexOf('=') + 1)
 			};
 			var countryName = toTitleCase($("h2").text());
 			var tables = $('.imagen_texto table'),
