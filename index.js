@@ -51,45 +51,49 @@ function scrapeInfo(countryUrls) {
 			// this object has some default options filled if those fields doesn't exist on individual page
 			var countryObj = {
 				"Nombre": "",
-				"Capital": "",
 				"Paludismo": "No existe riesgo de paludismo",
+				"Vacunas exigidas": "Ninguna",
+				"Vacunas recomendadas": "Ninguna",
+				"Capital": "",
 				"Lengua": "",
 				"Altitud": "",
 				"Población": "",
 				"Moneda": "",
 				"Zona horaria": "",
 				"Clima": "",
-				"Vacunas exigidas": "Ningún requisito de vacunación para los viajeros internacionales.",
-				"Vacunas recomendadas": "Es conveniente tener actualizado el calendario oficial de vacunaciones. Pueden ser recomendables otras vacunas, cuya prescripción deberá realizarse de forma personalizada en cualquiera de los Centros de Vacunación Internacional autorizados.",
-				"Cancillería Española": "",
+				"Cancillería Española": ""
 			};
-
 			var countryName = toTitleCase($("h2").text());
 			var tables = $('.imagen_texto table'),
-			// main table
 			details = tables[0],
-			// complementary tables
 			vacRequired = tables[1],
 			vacReccom = tables[2];
-			// paludismo table
 			paludismo = tables[3];
+
+			tables.each(function(d){
+				var tableHeader = $(this).find("th").text().trim();
+				if(tableHeader == "VACUNAS EXIGIDAS"){
+					vacRequired = this;
+					countryObj["Vacunas exigidas"] = $(this).find("td").text().trim();
+				}
+				else if(tableHeader == "VACUNAS RECOMENDADAS"){
+					vacReccom = this;
+					countryObj["Vacunas recomendadas"] = $(vacReccom).find("td").text().trim();
+				}
+				else if(tableHeader == "Paludismo"){
+					paludismo = this;
+					countryObj["Paludismo"] = $(paludismo).find("td").text().trim()
+				}
+			})
+
 
 			// set country name
 			countryObj["Nombre"] = countryName;
 			$(details).find("tr").each(function(d, i){
-
 				var property = $(this).find("th").text().trim(),
 				value = $(this).find("td").text().trim();
-
 				countryObj[property] = value;
 			});
-
-			// If this country has paludismo info table
-			if(paludismo){
-				countryObj["Paludismo"] = $(paludismo).find("td").text().trim();
-			}
-			countryObj["Vacunas exigidas"] = $(vacRequired).find("td").text().trim();
-			countryObj["Vacunas recomendadas"] = $(vacReccom).find("td").text().trim();
 
 			// add a new country to the main array
 			countryInfo.push(countryObj);
