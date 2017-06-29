@@ -59,6 +59,8 @@ fs.readFile(filePath, 'utf8', function(error, data) {
 					"codISO": "",
 					"Nombre": "",
 					"Paludismo": "No existe riesgo de paludismo",
+					"riesgoPaludismo":"No",
+					"riesgoFiebreAmarilla":"No",
 					"Vacunas exigidas": "Ninguna",
 					"Vacunas recomendadas": "Ninguna",
 					"Capital": "",
@@ -79,19 +81,35 @@ fs.readFile(filePath, 'utf8', function(error, data) {
 				vacReccom = tables[2];
 				paludismo = tables[3];
 
-				tables.each(function(d) {
-					var tableHeader = $(this).find("th").text().trim();
-					if (tableHeader == "VACUNAS EXIGIDAS") {
+				tables.each(function(d){
+					var content = $(this).find("th").text().trim();
+
+					if(content == "VACUNAS EXIGIDAS"){
 						vacRequired = this;
 						countryObj["Vacunas exigidas"] = $(this).find("td").text().trim();
-					} else if (tableHeader == "VACUNAS RECOMENDADAS") {
+						var fiebre = 'fiebre amarilla';
+						var text = $(this).find("td").text().trim().toLowerCase();
+
+
+						// riesgoFiebreAmarilla
+						if(text.indexOf(fiebre) != -1){
+							countryObj["riesgoFiebreAmarilla"] = "Si";
+							countryObj["fiebreYear"] = getYear(text) || "";
+						}
+					}
+					if(content == "VACUNAS RECOMENDADAS"){
 						vacReccom = this;
-						countryObj["Vacunas recomendadas"] = $(vacReccom).find("td").text().trim();
-					} else if (tableHeader == "Paludismo") {
+						countryObj["Vacunas recomendadas"] = $(vacReccom).find("td").text().trim().replace(/(\r\n|\n|\r)/gm, " ");
+					}
+					if(content == "PALUDISMO" || content == "Paludismo"){
 						paludismo = this;
-						countryObj["Paludismo"] = $(paludismo).find("td").text().trim()
+						countryObj["Paludismo"] = $(paludismo).find("td").text().trim().replace(/(\r\n|\n|\r)/gm, " ");;
+						countryObj["riesgoPaludismo"] = "Si";
+						var text = $(this).find("td").text().trim().toLowerCase();
+						countryObj["paludismoYear"] = getYear(text) || "";
 					}
 				})
+
 				var tsv = d3.tsvParse(data);
 
 				tsv.forEach(function(d) {
@@ -135,6 +153,11 @@ fs.readFile(filePath, 'utf8', function(error, data) {
 		return str.replace(/\w\S*/g, function(txt) {
 			return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
 		});
+	}
+	function getYear(str){
+		var firstChar = str.indexOf('(');
+		var extract = str.substr(firstChar + 1, 4);
+		return !isNaN(extract) ? extract : "";
 	}
 	scrapeLinks();
 });
