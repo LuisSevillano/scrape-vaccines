@@ -4,6 +4,7 @@ var cheerio = require('cheerio');
 var fs = require('fs');
 var d3Dsv = require('d3-dsv');
 var mkdirp = require('mkdirp');
+var d3 = require("d3");
 
 var url = 'https://www.msssi.gob.es/profesionales/saludPaises.do?metodo=verDetallePais&pais=';
 
@@ -31,7 +32,7 @@ function scrapeLinks() {
 			countryUrls[i] = baseUrl + countryLinkId;
 		});
 
-		scrapeInfo(countryUrls);
+		scrapeInfo([countryUrls[0]]);
 	});
 }
 
@@ -51,6 +52,7 @@ function scrapeInfo(countryUrls) {
 			}
 			// this object has some default options filled if those fields doesn't exist on individual page
 			var countryObj = {
+				"codISO":"",
 				"Nombre": "",
 				"Paludismo": "No existe riesgo de paludismo",
 				"Vacunas exigidas": "Ninguna",
@@ -88,6 +90,21 @@ function scrapeInfo(countryUrls) {
 					countryObj["Paludismo"] = $(paludismo).find("td").text().trim()
 				}
 			})
+
+			fs.readFile('ISO_3166-1.tsv', 'utf8', function(error, tsv) {
+			  data = d3.tsvParse(tsv);
+				data.forEach(function(d){
+					var codISO = d.code,
+					pageId = d.pageId;
+					if (countryObj["pageId"] == pageId) {
+						console.log("---MATCH!!!");
+						countryObj["codISO"] = codISO;
+						console.log(countryObj["codISO"]);
+						return;
+					}
+				})
+			})
+
 
 
 			// set country name

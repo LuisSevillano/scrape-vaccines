@@ -1,17 +1,23 @@
 {
-  "name": "scrapper",
+  "name": "scrape-vaccines",
   "version": "1.0.0",
-  "description": "",
+  "description": "Easy code to extract Spanish goverment recomendations about travelling abroad that contains info about language, vaccines, etc. that you need to know if you're planning to travel",
   "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:LuisSevillano/scrape-vaccines.git"
+  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "",
+  "author": "Luis Sevillano",
   "license": "ISC",
   "devDependencies": {
     "bluebird": "^3.5.0",
     "cheerio": "^1.0.0-rc.1",
+    "d3": "^4.9.1",
     "d3-dsv": "^1.0.5",
+    "d3-request": "^1.0.5",
     "fs": "0.0.1-security",
     "grunt": "^1.0.1",
     "jquery": "^3.2.1",
